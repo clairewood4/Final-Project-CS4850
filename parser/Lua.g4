@@ -13,37 +13,42 @@ block :
         ;
 
 expression :
-                  expression MULT expression     
-                | expression DIV expression     
-                | expression ADD expression     
-                | expression SUB expression     
-                | expression EQ expression 
-                | expression OR expression
-                | expression AND expression
-                | NOT expression 
-                | ifExpr          
+         SEMI
+        | ifExpr
+        | FUNCTION funcname funcbody
         ;
 
 ifExpr:
-        IF expression THEN block (ELSEIF expression THEN block)+ (ELSE block) 'end' 
+        IF exp THEN block (ELSEIF exp THEN block)+ (ELSE block) END 
         ;
 
 retstat :
-        'return' explist? SEMI?
+        'return' explist? ';'?
         ;
     
 explist : 
-        exp (',' exp)*
+        (exp) (',' (exp))*
         ;
 
 
 exp :
-        | TRUE 
+         TRUE 
         | FALSE
         | INT
         | FLOAT
         | STRING
         | functiondef
+        | exp MULT exp     
+        | exp DIV exp     
+        | exp ADD exp     
+        | exp SUB exp     
+        | exp EQ exp 
+        | exp OR exp
+        | exp AND exp
+        | exp CONCAT exp
+        | NOT exp 
+        | ifExpr  
+        | tableconstructor
         ;
 
 fragment                
@@ -72,6 +77,13 @@ FLOAT : INT '.' DIGIT+ EXPONENT?
 
 STRING : '\'' ( ~[\\'] )*? '\'' ;
 
+NAME: [a-zA-Z_][a-zA-Z_0-9]*;
+
+
+funcname
+    : NAME ('.' NAME)* (':' NAME)?
+    ;
+
 functiondef:
         FUNCTION funcbody
        ;
@@ -83,11 +95,31 @@ funcbody:
 parlist:
     namelist (',' '...')?
     | '...'
-    |
+    | /*empty option */
     ;
 
 namelist:
-    STRING (',' STRING)*
+    NAME (',' NAME)*
+    ;
+
+
+
+tableconstructor
+    : LB fieldlist? RB
+    ;
+
+fieldlist
+    : field (fieldsep field)* fieldsep?
+    ;
+
+field
+    : exp
+    | NAME ASSIGN exp
+    ;
+
+fieldsep
+    : COMMA
+    | SEMI
     ;
 
 
@@ -111,7 +143,7 @@ NOT         :  'not';
 
 IF          :  'if';
 THEN        :  'then';
-ELSEIF      :  'elif';
+ELSEIF      :  'elseif';
 ELSE        :  'else';
 
 
@@ -127,5 +159,5 @@ RK          : ']';
 DOT         : '.';
 COMMA       : ',';
 COLON       : ':';
-
+CONCAT      : '...';
 
